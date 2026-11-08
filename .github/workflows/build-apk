@@ -1,0 +1,47 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install the app tools
+        run: npm install
+
+      - name: Create the Android project (first run only)
+        run: |
+          if [ ! -d android ]; then npx cap add android; fi
+
+      - name: Copy the web files into the Android project
+        run: npx cap sync android
+
+      - name: Build the APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Keep the APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Drawable-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
