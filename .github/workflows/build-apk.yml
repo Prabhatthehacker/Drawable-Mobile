@@ -30,9 +30,11 @@ jobs:
         run: |
           if [ ! -d android ]; then npx cap add android; fi
 
-      - name: Allow more time to download Gradle (the default 10 seconds is too short)
+      - name: Configure Gradle distribution download
         run: |
           f=android/gradle/wrapper/gradle-wrapper.properties
+          # Use Gradle's direct download host and the smaller binary distribution.
+          sed -i 's#services\.gradle\.org/distributions/#downloads.gradle.org/distributions/#; s/-all\.zip/-bin.zip/' "$f"
           if grep -q '^networkTimeout=' "$f"; then
             sed -i 's/^networkTimeout=.*/networkTimeout=300000/' "$f"
           else
